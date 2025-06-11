@@ -14,12 +14,12 @@ export default class TextEditor {
     }
 
     get selectedText(): string {
-        const validSelections = this.collectNonEmptySelections(this.vsEditor.selections);
+        const validSelections = this.collectNonEmptySelections([...this.vsEditor.selections]);
         return this.extractText(validSelections);
     }
 
     get selectedLineRanges(): LineRange[] {
-        const validSelections = this.collectNonEmptySelections(this.vsEditor.selections);
+        const validSelections = this.collectNonEmptySelections([...this.vsEditor.selections]);
         return this.extractLineRanges(validSelections);
     }
 

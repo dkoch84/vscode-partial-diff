@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import CommandAdaptor from './adaptors/command';
 import WindowAdaptor from './adaptors/window';
 import {NullVsTelemetryReporter, VsTelemetryReporterCreator} from './telemetry-reporter';
-import VsTelemetryReporter from 'vscode-extension-telemetry';
+import VsTelemetryReporter from '@vscode/extension-telemetry';
 
 export default class BootstrapperFactory {
     private workspaceAdaptor?: WorkspaceAdaptor;
@@ -39,8 +39,12 @@ export default class BootstrapperFactory {
     getVsTelemetryReporterCreator(): VsTelemetryReporterCreator {
         const enableTelemetry = this.getWorkspaceAdaptor().get<boolean>('enableTelemetry');
         if (enableTelemetry) {
-            return (id: string, version: string, telemetryKey: string) =>
-                new VsTelemetryReporter(id, version, telemetryKey);
+            return (_id: string, _version: string, telemetryKey: string) => {
+                // For the new telemetry API, we use a connection string format
+                // The telemetryKey is an Application Insights instrumentation key
+                const connectionString = `InstrumentationKey=${telemetryKey}`;
+                return new VsTelemetryReporter(connectionString);
+            };
         } else {
             return () => new NullVsTelemetryReporter();
         }
