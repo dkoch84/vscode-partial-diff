@@ -22,7 +22,7 @@ export default class CommandWrapper {
             this.telemetryReporter.logCommandTrigger(this.name);
             return await this.command.execute(editor && new TextEditor(editor));
         } catch (e) {
-            this.handleError(e);
+            this.handleError(e instanceof Error ? e : new Error(String(e)));
         }
     }
 

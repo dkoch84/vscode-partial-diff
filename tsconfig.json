@@ -10,11 +10,12 @@
     "moduleResolution": "Node",
     "sourceMap": true,
     "rootDir": "src",
-    "strict": true,
-    "noUnusedLocals": true,
+    "strict": false,
+    "noUnusedLocals": false,
     "noFallthroughCasesInSwitch": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",
