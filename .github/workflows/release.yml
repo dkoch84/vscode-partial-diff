@@ -3,12 +3,6 @@ name: Release
 on:
   release:
     types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release'
-        required: true
-        type: string
 
 jobs:
   release:
@@ -26,16 +20,6 @@ jobs:
         
     - name: Install dependencies
       run: yarn install --frozen-lockfile
-      
-    - name: Update version if manual dispatch
-      if: github.event_name == 'workflow_dispatch'
-      run: |
-        npm version ${{ github.event.inputs.version }} --no-git-tag-version
-        git config user.name 'github-actions[bot]'
-        git config user.email 'github-actions[bot]@users.noreply.github.com'
-        git add package.json
-        git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
-        git push
         
     - name: Run linter
       run: yarn lint
