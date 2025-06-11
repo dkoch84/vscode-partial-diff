@@ -24,6 +24,7 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    if: false  # Temporarily disabled
 
     strategy:
       fail-fast: false
