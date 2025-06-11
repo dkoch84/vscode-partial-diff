@@ -57,16 +57,16 @@ jobs:
         asset_name: partial-diff-${{ github.event.release.tag_name }}.vsix
         asset_content_type: application/zip
         
-    - name: Publish to VS Code Marketplace
-      if: github.event_name == 'release' && secrets.VSCE_PAT != ''
-      run: |
-        npx @vscode/vsce publish --yarn --packagePath ./partial-diff-*.vsix
-      env:
-        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+    # - name: Publish to VS Code Marketplace
+    #   if: github.event_name == 'release' && secrets.VSCE_PAT != ''
+    #   run: |
+    #     npx @vscode/vsce publish --yarn --packagePath ./partial-diff-*.vsix
+    #   env:
+    #     VSCE_PAT: ${{ secrets.VSCE_PAT }}
         
-    - name: Publish to Open VSX
-      if: github.event_name == 'release' && secrets.OVSX_PAT != ''
-      run: |
-        npx ovsx publish ./partial-diff-*.vsix
-      env:
-        OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    # - name: Publish to Open VSX
+    #   if: github.event_name == 'release' && secrets.OVSX_PAT != ''
+    #   run: |
+    #     npx ovsx publish ./partial-diff-*.vsix
+    #   env:
+    #     OVSX_PAT: ${{ secrets.OVSX_PAT }}
