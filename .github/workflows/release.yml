@@ -30,10 +30,6 @@ jobs:
     - name: Package extension
       run: yarn package
       
-    - name: Get package version
-      id: package-version
-      run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-      
     - name: Upload release asset
       if: github.event_name == 'release'
       uses: actions/upload-release-asset@v1
@@ -41,7 +37,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./partial-diff-${{ steps.package-version.outputs.version }}.vsix
+        asset_path: ./partial-diff-${{ github.event.release.tag_name }}.vsix
         asset_name: partial-diff-${{ github.event.release.tag_name }}.vsix
         asset_content_type: application/zip
         
