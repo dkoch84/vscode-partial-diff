@@ -41,6 +41,9 @@ jobs:
     - name: Package extension
       run: yarn package
       
+    - name: Test release workflow logic
+      run: ./scripts/test-release-workflow.sh
+      
     - name: Upload extension artifact
       uses: actions/upload-artifact@v4
       with:
