@@ -67,6 +67,7 @@ jobs:
 
     - run: yarn install --frozen-lockfile
     - run: yarn compile:prod
+    - run: npx tsc -p .
 
     - name: Run VS Code integration tests
       uses: coactions/setup-xvfb@v1
