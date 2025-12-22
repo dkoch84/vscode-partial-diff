@@ -1,6 +1,6 @@
 import TextEditor from '../../../lib/adaptors/text-editor';
 import * as assert from 'assert';
-import {mockType} from '../../helpers';
+// helpers import removed - using direct casting
 import * as vscode from 'vscode';
 
 suite('TextEditor', () => {
@@ -116,16 +116,16 @@ suite('TextEditor', () => {
     }
 
     function fakeEditor(selections: any[]) {
-        return mockType<vscode.TextEditor>({
+        const entireText = 'ENTIRE TEXT';
+        return {
             selections,
             selection: selections[0],
             document: {
                 fileName: 'FILENAME',
-                _entireText: 'ENTIRE TEXT',
                 getText(selection: any) {
-                    return selection ? selection.text : this._entireText;
+                    return selection ? selection.text : entireText;
                 }
             }
-        });
+        } as unknown as vscode.TextEditor;
     }
 });

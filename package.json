@@ -2,7 +2,7 @@
   "name": "partial-diff",
   "displayName": "Partial Diff",
   "description": "Compare (diff) text selections within a file, across files, or to the clipboard",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "publisher": "ryu1kn",
   "license": "SEE LICENSE IN LICENSE.txt",
   "icon": "images/partial-diff_128x128.png",
@@ -15,7 +15,7 @@
     "url": "https://github.com/ryu1kn/vscode-partial-diff.git"
   },
   "engines": {
-    "vscode": "^1.51.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
@@ -178,41 +178,41 @@
     }
   },
   "scripts": {
-    "coverage": "nyc mocha",
     "compile:dev": "webpack --mode development",
     "compile:prod": "rm -rf dist && webpack --mode production",
-    "compile:test:it": "tsc -p ./",
-    "lint": "tslint -p .",
-    "watch": "yarn run compile:dev -- --watch",
-    "prep": "yarn run compile:prod && yarn run lint && yarn test",
+    "watch": "webpack --mode development --watch",
+    "lint": "eslint src --ext .ts",
     "test": "mocha",
-    "test-mode": "mocha --watch",
-    "vscode:prepublish": "yarn run compile:prod",
-    "vscode:postpublish": "./tag-release.sh"
+    "test:integration": "node ./out/test/integration/runTest.js",
+    "coverage": "nyc mocha",
+    "package": "vsce package --yarn",
+    "prep": "yarn compile:prod && yarn lint && yarn test",
+    "vscode:prepublish": "yarn compile:prod"
   },
   "dependencies": {
-    "lodash.isequal": "4.5.0",
-    "lodash.omit": "4.5.0",
-    "vscode-extension-telemetry": "^0.1.7"
+    "@vscode/extension-telemetry": "^0.9.7",
+    "lodash.isequal": "^4.5.0",
+    "lodash.omit": "^4.5.0"
   },
   "devDependencies": {
-    "@types/lodash.isequal": "^4.5.5",
-    "@types/lodash.omit": "^4.5.6",
-    "@types/mocha": "^8.0.4",
-    "@types/node": "^12.14.1",
-    "@types/vscode": "^1.51.0",
-    "codeclimate-test-reporter": "^0.5.1",
-    "mocha": "^8.2.1",
-    "nyc": "^15.1.0",
-    "testdouble": "^3.13.1",
-    "ts-loader": "^8.1.0",
-    "ts-node": "^9.0.0",
-    "tslint": "^6.1.3",
-    "typescript": "^4.1.2",
-    "webpack": "^5.30.0",
-    "webpack-cli": "^4.6.0"
-  },
-  "resolutions": {
-    "**/json5/**/minimist": "^1.2.5"
+    "@types/lodash.isequal": "^4.5.8",
+    "@types/lodash.omit": "^4.5.9",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.0",
+    "@types/vscode": "^1.74.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.1",
+    "eslint": "^9.17.0",
+    "glob": "^11.0.0",
+    "mocha": "^10.8.2",
+    "nyc": "^17.1.0",
+    "testdouble": "^3.20.2",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
   }
 }

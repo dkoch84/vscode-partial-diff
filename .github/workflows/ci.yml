@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Weekly on Sundays at midnight UTC - detect stale builds early
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: yarn
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Lint
+      run: yarn lint
+
+    - name: Build
+      run: yarn compile:prod
+
+    - name: Unit tests
+      run: yarn test
+
+    - name: Package
+      run: yarn package
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: vsix-node${{ matrix.node-version }}
+        path: '*.vsix'
+        retention-days: 7
+
+  integration:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        vscode: [stable, insiders]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: yarn
+
+    - run: yarn install --frozen-lockfile
+    - run: yarn compile:prod
+
+    - name: Run VS Code integration tests
+      uses: coactions/setup-xvfb@v1
+      with:
+        run: yarn test:integration
+      env:
+        VSCODE_TEST_VERSION: ${{ matrix.vscode }}
+
+  # Alert on scheduled build failures
+  alert:
+    needs: [build, integration]
+    runs-on: ubuntu-latest
+    if: failure() && github.event_name == 'schedule'
+    steps:
+    - uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🔴 Scheduled build failed - ${new Date().toISOString().split('T')[0]}`;
+          const body = `The weekly CI build failed. This may indicate dependency or VS Code API compatibility issues.\n\n[View run](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})`;
+
+          const { data: issues } = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: 'ci-failure'
+          });
+
+          if (!issues.some(i => i.title.includes('Scheduled build failed'))) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['ci-failure']
+            });
+          }

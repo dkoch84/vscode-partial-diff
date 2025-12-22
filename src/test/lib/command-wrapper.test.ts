@@ -1,5 +1,5 @@
 import {Command} from '../../lib/commands/command';
-import {contains, mock, mockMethods, mockType, verify} from '../helpers';
+import {contains, mock, mockMethods, verify} from '../helpers';
 import * as vscode from 'vscode';
 import CommandWrapper from '../../lib/command-wrapper';
 import {Logger} from '../../lib/types/logger';
@@ -23,9 +23,9 @@ suite('CommandWrapper', () => {
         }
     }
 
-    const goodEditor = mockType<vscode.TextEditor>({document: {fileName: 'good'}});
-    const badSyncEditor = mockType<vscode.TextEditor>({document: {fileName: 'bad - sync'}});
-    const badAsyncEditor = mockType<vscode.TextEditor>({document: {fileName: 'bad - async'}});
+    const goodEditor = {document: {fileName: 'good'}} as unknown as vscode.TextEditor;
+    const badSyncEditor = {document: {fileName: 'bad - sync'}} as unknown as vscode.TextEditor;
+    const badAsyncEditor = {document: {fileName: 'bad - async'}} as unknown as vscode.TextEditor;
 
     const command = new MockCommand();
 

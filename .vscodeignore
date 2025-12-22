@@ -21,6 +21,6 @@ __*/**/*
 out/**/*
 node_modules/**/*
 tsconfig.json
-tslint.json
+eslint.config.js
 tag-release.sh
 webpack.config.js

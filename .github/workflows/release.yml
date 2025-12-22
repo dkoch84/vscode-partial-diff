@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: yarn
+
+    - run: yarn install --frozen-lockfile
+    - run: yarn lint
+    - run: yarn compile:prod
+    - run: yarn test
+    - run: yarn package
+
+    - name: Get version
+      id: version
+      run: echo "value=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./partial-diff-${{ steps.version.outputs.value }}.vsix
+        asset_name: partial-diff-${{ github.event.release.tag_name }}.vsix
+        asset_content_type: application/zip
+
+    # - name: Publish to VS Code Marketplace
+    #   if: vars.PUBLISH_TO_MARKETPLACE == 'true'
+    #   run: npx @vscode/vsce publish --yarn --packagePath ./partial-diff-${{ steps.version.outputs.value }}.vsix
+    #   env:
+    #     VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+    # - name: Publish to Open VSX
+    #   if: vars.PUBLISH_TO_OPENVSX == 'true'
+    #   run: npx ovsx publish ./partial-diff-${{ steps.version.outputs.value }}.vsix
+    #   env:
+    #     OVSX_PAT: ${{ secrets.OVSX_PAT }}

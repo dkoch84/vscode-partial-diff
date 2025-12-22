@@ -18,7 +18,7 @@ suite('CompareSelectionWithClipboardCommand', () => {
     const selectionInfoRegistry = new SelectionInfoRegistry();
 
     test('it compares selected text with clipboard text', async () => {
-        const clipboard = mockMethods<typeof vscode.env.clipboard>(['readText']);
+        const clipboard: any = mockMethods<typeof vscode.env.clipboard>(['readText']);
         when(clipboard.readText()).thenResolve('CLIPBOARD_TEXT');
 
         const commandAdaptor = mock(CommandAdaptor);
