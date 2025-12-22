@@ -37,23 +37,10 @@ jobs:
       run: yarn compile:prod
 
     - name: Unit tests
-      id: unit-tests
-      run: |
-        yarn test 2>&1 | tee test-output-raw.txt
-        # Strip ANSI codes and extract test count
-        sed 's/\x1b\[[0-9;]*m//g' test-output-raw.txt > test-output.txt
-        PASSING=$(grep -oP '\d+(?= passing)' test-output.txt || echo "0")
-        echo "passing=$PASSING" >> $GITHUB_OUTPUT
+      run: yarn test
 
     - name: Package
-      id: package
-      run: |
-        yarn package 2>&1 | tee package-output.txt
-        # Extract package info
-        VSIX_FILE=$(ls -1 *.vsix 2>/dev/null | head -1)
-        VSIX_SIZE=$(du -h "$VSIX_FILE" | cut -f1)
-        echo "vsix_file=$VSIX_FILE" >> $GITHUB_OUTPUT
-        echo "vsix_size=$VSIX_SIZE" >> $GITHUB_OUTPUT
+      run: yarn package
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -61,21 +48,6 @@ jobs:
         name: vsix-node${{ matrix.node-version }}
         path: '*.vsix'
         retention-days: 7
-
-    - name: Write job summary
-      run: |
-        echo "## 🔨 Build Summary (Node ${{ matrix.node-version }})" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
-        echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| ✅ Unit Tests | ${{ steps.unit-tests.outputs.passing }} passing |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📦 Package | ${{ steps.package.outputs.vsix_file }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📏 Size | ${{ steps.package.outputs.vsix_size }} |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📋 Package Contents" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        grep -A 100 "Files included in the VSIX" package-output.txt | head -20 >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
   integration:
     needs: build
@@ -98,58 +70,11 @@ jobs:
     - run: npx tsc -p .
 
     - name: Run VS Code integration tests
-      id: integration-tests
       uses: coactions/setup-xvfb@v1
       with:
-        run: yarn test:integration 2>&1 | tee /tmp/integration-output.txt
+        run: yarn test:integration
       env:
         VSCODE_TEST_VERSION: ${{ matrix.vscode }}
-
-    - name: Write job summary
-      if: always()
-      run: |
-        echo "## 🧪 Integration Tests (VS Code ${{ matrix.vscode }})" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-
-        # Strip ANSI codes
-        if [ -f /tmp/integration-output.txt ]; then
-          sed 's/\x1b\[[0-9;]*m//g' /tmp/integration-output.txt > /tmp/integration-clean.txt
-        fi
-
-        # Determine status based on job outcome
-        if [ "${{ steps.integration-tests.outcome }}" == "success" ]; then
-          echo "**Status:** ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
-        elif [ "${{ steps.integration-tests.outcome }}" == "failure" ]; then
-          echo "**Status:** ❌ Tests failed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "**Status:** ⚠️ ${{ steps.integration-tests.outcome }}" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "" >> $GITHUB_STEP_SUMMARY
-
-        # Show test results table
-        if [ -f /tmp/integration-clean.txt ]; then
-          PASSING=$(grep -oP '\d+(?= passing)' /tmp/integration-clean.txt || echo "0")
-          FAILING=$(grep -oP '\d+(?= failing)' /tmp/integration-clean.txt || echo "0")
-
-          echo "| Result | Test |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
-
-          # Extract test names with their status
-          grep -E "^\s*(✔|✓)" /tmp/integration-clean.txt | sed 's/^\s*//' | while read line; do
-            TEST_NAME=$(echo "$line" | sed 's/^[✔✓]\s*//')
-            echo "| ✅ | $TEST_NAME |" >> $GITHUB_STEP_SUMMARY
-          done
-
-          grep -E "^\s*(✗|×|\d+\))" /tmp/integration-clean.txt | sed 's/^\s*//' | while read line; do
-            TEST_NAME=$(echo "$line" | sed 's/^[✗×0-9)]\s*//')
-            echo "| ❌ | $TEST_NAME |" >> $GITHUB_STEP_SUMMARY
-          done
-
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Total:** $PASSING passing, $FAILING failing" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "⚠️ Could not capture test output" >> $GITHUB_STEP_SUMMARY
-        fi
 
   # Alert on scheduled build failures
   alert:

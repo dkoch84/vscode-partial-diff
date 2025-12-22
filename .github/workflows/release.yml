@@ -21,22 +21,8 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn lint
     - run: yarn compile:prod
-
-    - name: Run tests
-      id: tests
-      run: |
-        yarn test 2>&1 | tee test-output.txt
-        PASSING=$(grep -oP '\d+(?= passing)' test-output.txt || echo "0")
-        echo "passing=$PASSING" >> $GITHUB_OUTPUT
-
-    - name: Package
-      id: package
-      run: |
-        yarn package 2>&1 | tee package-output.txt
-        VSIX_FILE=$(ls -1 *.vsix 2>/dev/null | head -1)
-        VSIX_SIZE=$(du -h "$VSIX_FILE" | cut -f1)
-        echo "vsix_file=$VSIX_FILE" >> $GITHUB_OUTPUT
-        echo "vsix_size=$VSIX_SIZE" >> $GITHUB_OUTPUT
+    - run: yarn test
+    - run: yarn package
 
     - name: Get version
       id: version
@@ -51,23 +37,6 @@ jobs:
         asset_path: ./partial-diff-${{ steps.version.outputs.value }}.vsix
         asset_name: partial-diff-${{ github.event.release.tag_name }}.vsix
         asset_content_type: application/zip
-
-    - name: Write job summary
-      run: |
-        echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
-        echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🏷️ Version | ${{ steps.version.outputs.value }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🏷️ Tag | ${{ github.event.release.tag_name }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| ✅ Unit Tests | ${{ steps.tests.outputs.passing }} passing |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📦 Package | ${{ steps.package.outputs.vsix_file }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📏 Size | ${{ steps.package.outputs.vsix_size }} |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📋 Package Contents" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        grep -A 100 "Files included in the VSIX" package-output.txt | head -20 >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     # - name: Publish to VS Code Marketplace
     #   if: vars.PUBLISH_TO_MARKETPLACE == 'true'
