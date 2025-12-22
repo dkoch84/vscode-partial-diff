@@ -100,14 +100,7 @@ jobs:
       id: integration-tests
       uses: coactions/setup-xvfb@v1
       with:
-        run: |
-          yarn test:integration 2>&1 | tee integration-output.txt
-          # Extract test results
-          PASSING=$(grep -oP '\d+(?= passing)' integration-output.txt || echo "0")
-          FAILING=$(grep -oP '\d+(?= failing)' integration-output.txt || echo "0")
-          DURATION=$(grep -oP '\d+(?=ms\)|s\))' integration-output.txt | tail -1 || echo "N/A")
-          echo "passing=$PASSING" >> $GITHUB_OUTPUT
-          echo "failing=$FAILING" >> $GITHUB_OUTPUT
+        run: yarn test:integration 2>&1 | tee integration-output.txt
       env:
         VSCODE_TEST_VERSION: ${{ matrix.vscode }}
 
