@@ -100,7 +100,7 @@ jobs:
       id: integration-tests
       uses: coactions/setup-xvfb@v1
       with:
-        run: yarn test:integration 2>&1 | tee integration-output.txt
+        run: yarn test:integration 2>&1 | tee integration-output-raw.txt
       env:
         VSCODE_TEST_VERSION: ${{ matrix.vscode }}
 
@@ -110,7 +110,12 @@ jobs:
         echo "## 🧪 Integration Tests (VS Code ${{ matrix.vscode }})" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Determine status emoji
+        # Strip ANSI color codes for reliable parsing
+        if [ -f integration-output-raw.txt ]; then
+          sed 's/\x1b\[[0-9;]*m//g' integration-output-raw.txt > integration-output.txt
+        fi
+
+        # Determine status
         if [ -f integration-output.txt ] && grep -q "failing" integration-output.txt; then
           STATUS="❌ Some tests failed"
         elif [ -f integration-output.txt ] && grep -q "passing" integration-output.txt; then
@@ -139,8 +144,8 @@ jobs:
           echo "<details><summary>Click to expand test output</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          # Extract just the test results section
-          grep -E "^\s*(✔|✓|✗|×|Extension|Commands|diff|mark|toggle|rapid)" integration-output.txt | head -20 >> $GITHUB_STEP_SUMMARY || true
+          # Extract test results - look for checkmarks and test names
+          grep -E "(✔|✓|✗|×|passing|failing)" integration-output.txt | head -15 >> $GITHUB_STEP_SUMMARY || true
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
         fi
